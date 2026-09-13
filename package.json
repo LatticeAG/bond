@@ -1,0 +1,24 @@
+{
+  "name": "bond",
+  "version": "1.0.0-draft.1",
+  "description": "Bond — versioned action receipts joining policy, escrow, planned undo, local stop evidence, and insurance paper (simulated profile)",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "adapters/*"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "test": "npm run build && node --test \"tests/conformance/*.test.cjs\"",
+    "test:python": "python3 -m pytest python/tests -q",
+    "clean": "tsc -b tsconfig.build.json --clean"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

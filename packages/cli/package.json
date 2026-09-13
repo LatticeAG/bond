@@ -1,0 +1,17 @@
+{
+  "name": "@latticeag/bond-cli",
+  "version": "1.0.0-draft.1",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "bond": "bin/bond.js"
+  },
+  "dependencies": {
+    "@latticeag/bond-core": "1.0.0-draft.1",
+    "@latticeag/bond-sdk": "1.0.0-draft.1",
+    "@latticeag/bond-adapters-fixture": "1.0.0-draft.1",
+    "@latticeag/bond-adapters-native": "1.0.0-draft.1",
+    "@latticeag/bond-host": "1.0.0-draft.1"
+  }
+}

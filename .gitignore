@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.venv/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# LatticeAG internal spec/review material — never tracked
+SPEC*.md
+*EXTREME*.md
+PROMPT*.md
+*PROMPT*.md
+BUILD_PROMPT.md
+REVIEW*.md
+FIX_PROMPT*
+SELFREVIEW*
+DRAFT*
+REPORT.md
+INTERFACES.md
+STATUS*
+
+# local dev data
+bond.config.json
+*.log

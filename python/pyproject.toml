@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bond-verify"
+version = "1.0.0-draft.1"
+description = "Bond offline verification: canonicalization, Ed25519, schema, package verification, reduced-state projection (simulation profile)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = ["cryptography>=41"]
+
+[tool.setuptools.packages.find]
+include = ["bond_verify*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
