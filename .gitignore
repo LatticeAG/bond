@@ -22,4 +22,5 @@ STATUS*
 
 # local dev data
 bond.config.json
+bond.fixture-world.json
 *.log
