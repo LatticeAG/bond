@@ -58,6 +58,34 @@ pip install -e python/ pytest
 python3 -m pytest python/tests -q   # Python parity suite
 ```
 
+The Python package requires **Python ≥ 3.11** (`requires-python`). Many
+systems still ship `python3` = 3.10 — if `pip install -e python/` reports no
+matching interpreter, use a newer one explicitly, e.g. with uv:
+
+```sh
+uv venv --python 3.12 .venv && . .venv/bin/activate
+uv pip install -e python/ pytest
+```
+
 The CLI lifecycle (`prepare` → `execute` → `accept`/`reject`/`cancel` →
 `export` → `verify`) runs entirely against the fixture world; see
 `bond doctor --json` for capability status.
+
+### Secrets and fixture time
+
+Signing seeds come from the environment as `BOND_SEED_<REF>`: the ref is the
+`signing_key_ref` in `bond.config.json` **uppercased** (with non-alphanumeric
+characters mapped to `_`), so `signing_key_ref: "main"` reads
+`BOND_SEED_MAIN` — the name is case-sensitive. The value is a 64-hex Ed25519
+seed.
+
+`fixtures/f.js` stamps every timestamp relative to one epoch. The default is
+the normative golden date (`2026-09-12T12:00:00.000Z`) so the conformance
+vectors stay byte-identical. Real-clock CLI runs must restamp, or `prepare`
+fails `DEADLINE` (the schema pins `execute_before <= created_at+30s` and
+`reserve_until = created_at+300s`):
+
+```sh
+BOND_FIXTURE_T=now node -e 'const{J,F}=require("./fixtures/f.js");...'
+# or pin an explicit epoch: BOND_FIXTURE_T=2026-10-10T00:00:00.000Z
+```

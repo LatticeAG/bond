@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bond-verify"
-version = "1.0.0-draft.1"
+version = "1.0.0.dev1"
 description = "Bond offline verification: canonicalization, Ed25519, schema, package verification, reduced-state projection (simulation profile)"
 readme = "README.md"
 license = { text = "MIT" }

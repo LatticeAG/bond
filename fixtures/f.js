@@ -12,13 +12,22 @@ const ref=b=>({hash:b.hash,bytes:b.bytes,media_type:b.media_type});
 const ok=value=>({ok:true,value});
 const fail=(code,head=null)=>({ok:false,code,retryable:false,head});
 const known=value=>({status:"KNOWN",value});
-const F={profile:"bond.sim-procurement-draft/1",t:"2026-09-12T12:00:00.000Z",a:id("bac"),r:id("brc"),q:id("bnq"),tenant:id("bnt"),scope:id("bns"),principal:id("bnp"),run:"run-1",host:"host-1"};
+// Every timestamp below is relative to a single epoch. The default epoch is
+// the normative golden date so the conformance vectors stay byte-identical;
+// real-clock runs (a CLI E2E against systemClock) must restamp —
+// BOND_FIXTURE_T=now (or an ISO time) shifts the whole fixture to that
+// instant. The schema pins execute_before<=created_at+30s and
+// reserve_until=created_at+300s, so the golden epoch fails DEADLINE later.
+const T0=(()=>{const v=process.env.BOND_FIXTURE_T;if(v==="now")return Date.now();const t=Date.parse(v||"2026-09-12T12:00:00.000Z");if(Number.isNaN(t))throw Error("BOND_FIXTURE_T must be an ISO time or 'now'");return t})();
+const iso=ms=>new Date(ms).toISOString();
+const day=ms=>Date.parse(iso(ms).slice(0,10)+"T00:00:00.000Z");
+const F={profile:"bond.sim-procurement-draft/1",t:iso(T0),a:id("bac"),r:id("brc"),q:id("bnq"),tenant:id("bnt"),scope:id("bns"),principal:id("bnp"),run:"run-1",host:"host-1"};
 F.pin={charter_id:"bch_000000000000000000000",version:1,charter_hash:A,manifest_hash:A,engine:"bedrock.eval/1"};
-F.action={schema:"bond.action/1",profile:F.profile,tenant_id:F.tenant,scope_id:F.scope,action_id:F.a,principal_id:F.principal,action_class:"procurement.draft.create/1",resource:"drafts/"+F.a,expected:"ABSENT",draft:{status:"DRAFT",supplier_alias:"supplier-1",catalog_item:"item-1",quantity:1,quoted_minor:"10000",asset:"SIMUSD"},terms:{asset:"SIMUSD",amount_minor:"1000",owner:"operator-1",beneficiary:"beneficiary-1",task_id:"task-1",reserve_until:"2026-09-12T12:05:00.000Z",long_stop:"2026-10-27T12:00:00.000Z",trigger:"OPERATOR_REJECTION_OF_CONFIRMED_DRAFT"},policy_pin:F.pin,adapter_build:A,created_at:F.t,execute_before:"2026-09-12T12:00:30.000Z"};
+F.action={schema:"bond.action/1",profile:F.profile,tenant_id:F.tenant,scope_id:F.scope,action_id:F.a,principal_id:F.principal,action_class:"procurement.draft.create/1",resource:"drafts/"+F.a,expected:"ABSENT",draft:{status:"DRAFT",supplier_alias:"supplier-1",catalog_item:"item-1",quantity:1,quoted_minor:"10000",asset:"SIMUSD"},terms:{asset:"SIMUSD",amount_minor:"1000",owner:"operator-1",beneficiary:"beneficiary-1",task_id:"task-1",reserve_until:iso(T0+300e3),long_stop:iso(T0+45*86400e3),trigger:"OPERATOR_REJECTION_OF_CONFIRMED_DRAFT"},policy_pin:F.pin,adapter_build:A,created_at:F.t,execute_before:iso(T0+30e3)};
 F.ah=D("action",F.action);F.dh=H(J(F.action.draft));
 F.plan={schema:"bond.undo-plan/1",action_hash:F.ah,adapter_build:A,operation:"draft.delete_if_created_version",resource:F.action.resource,require_status:"DRAFT",require_no_export:true,version_source:"FORWARD_RESULT",value_hash:F.dh,remedy_minor:"1000",asset:"SIMUSD",expires_at:F.action.terms.long_stop};
 F.doc=blob({simulation:true,policy:"SIM-PAPER-1",terms:"Draft-only simulated remedy; no real insurance or redeemable funds."});
-F.paper=S("paper",{schema:"bond.paper/1",paper_id:id("bni"),tenant_id:F.tenant,holder:F.principal,insurer_label:"Simulation paper issuer",policy_reference:"SIM-PAPER-1",document:ref(F.doc),reviewed_by:F.principal,reviewed_at:F.t,effective_at:"2026-09-01T00:00:00.000Z",expires_at:"2026-11-01T00:00:00.000Z",action_class:"procurement.draft.create/1",asset:"SIMUSD",stated_per_action_limit:"1000",exclusions_document:ref(F.doc),mode:"PAPER_ONLY",insurer_confirmed:false,aggregate_availability:"NOT_VERIFIED",coverage_verdict:"NOT_DETERMINED"});
+F.paper=S("paper",{schema:"bond.paper/1",paper_id:id("bni"),tenant_id:F.tenant,holder:F.principal,insurer_label:"Simulation paper issuer",policy_reference:"SIM-PAPER-1",document:ref(F.doc),reviewed_by:F.principal,reviewed_at:F.t,effective_at:iso(day(T0)-11*86400e3),expires_at:iso(day(T0)+50*86400e3),action_class:"procurement.draft.create/1",asset:"SIMUSD",stated_per_action_limit:"1000",exclusions_document:ref(F.doc),mode:"PAPER_ONLY",insurer_confirmed:false,aggregate_availability:"NOT_VERIFIED",coverage_verdict:"NOT_DETERMINED"});
 F.actionBlob=blob(F.action);F.planBlob=blob(F.plan);F.paperBlob=blob(F.paper);
 F.binding={action:ref(F.actionBlob),plan:ref(F.planBlob),paper:ref(F.paperBlob),trellis_run:F.run,trellis_host:F.host,trellis_task_ref:F.a};
 const evidence=facts=>{const source=blob(facts);return {assertion:S("assertion",{schema:"bond.assertion/1",action_hash:F.ah,observed_at:F.t,source_profile:"fixture/1",source:ref(source),facts}),source}};
@@ -62,12 +71,12 @@ F.SA=accepted();push(F.SA,"EvidenceAttached",{artifact:ref(F.advisory),purpose:"
 F.P0={schema:"bond.package/1",receipts:F.S0.receipts,entries:F.S0.entries,blobs:unique([F.actionBlob,F.planBlob,F.paperBlob,F.doc])};
 F.verify0={integrity:"VALID",completeness:"INCOMPLETE",currentness:"PINNED_PREFIX",simulation:true,insurance:"PAPER_ONLY",truth:"ISSUER_ASSERTIONS_NOT_REAL_WORLD_PROOF",head:F.V0.head,errors:[]};
 F.notice=S("notice",{schema:"bond.notice/1",receipt_id:F.r,revision:1,previous_hash:null,reason:"HOSTING_WITHDRAWN",recorded_at:F.t});
-F.trust={schema:"bond.trust/1",keys:[{key_id:id("bnk"),public_key_hex:pk,roles:["assertion","entry","http","notice","paper","receipt"],assertion_kinds:["EFFECT","HOLD","KILL","NO_HOLD","POLICY","RUN"],source_profiles:["fixture/1"],tenant_id:F.tenant,not_before:"2026-09-01T00:00:00.000Z",not_after:"2026-11-01T00:00:00.000Z",compromised_at:null}],allowed_adapter_builds:[A],expected_heads:[{receipt_id:F.r,head:F.V0.head}]};
+F.trust={schema:"bond.trust/1",keys:[{key_id:id("bnk"),public_key_hex:pk,roles:["assertion","entry","http","notice","paper","receipt"],assertion_kinds:["EFFECT","HOLD","KILL","NO_HOLD","POLICY","RUN"],source_profiles:["fixture/1"],tenant_id:F.tenant,not_before:iso(day(T0)-11*86400e3),not_after:iso(day(T0)+50*86400e3),compromised_at:null}],allowed_adapter_builds:[A],expected_heads:[{receipt_id:F.r,head:F.V0.head}]};
 F.complete=accepted();push(F.complete,"StopRequested",{principal_id:F.principal,operation_key:F.a+":stop"},{kill:"REQUESTED",stop_latched:true,pending:["STOP"]});push(F.complete,"KillObserved",{evidence:ref(eb(F.ek))},{kill:"CERTIFIED",pending:[]});
 const completeBlobs=[F.actionBlob,F.planBlob,F.paperBlob,F.doc];
 for(const name of ["ep","eh","ee","er","ef","en","ek"]){completeBlobs.push(eb(F[name]),F[name].source)}
 F.PC={schema:"bond.package/1",receipts:F.complete.receipts,entries:F.complete.entries,blobs:unique(completeBlobs)};
-const unsignedAuth={tenant_id:F.tenant,principal_id:F.principal,key_id:id("bnk"),request_id:F.q,method:"POST",target:"/v1/certificates",body_hash:H(J({package:F.P0,expected_host_revision:0})),issued_at:F.t,expires_at:"2026-09-12T12:05:00.000Z"};
+const unsignedAuth={tenant_id:F.tenant,principal_id:F.principal,key_id:id("bnk"),request_id:F.q,method:"POST",target:"/v1/certificates",body_hash:H(J({package:F.P0,expected_host_revision:0})),issued_at:F.t,expires_at:iso(T0+300e3)};
 F.httpAuth=Object.assign({},unsignedAuth,{sig:sign(null,Buffer.from("LAGI-BOND/sign/request/1\n"+D("request",unsignedAuth)),key).toString("base64url")});
 F.httpHeader=Buffer.from(J(F.httpAuth)).toString("base64url");
 if(pk!=="d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a")throw Error("KEY_FIXTURE");
