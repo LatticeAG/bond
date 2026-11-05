@@ -61,3 +61,16 @@ python3 -m pytest python/tests -q   # Python parity suite
 The CLI lifecycle (`prepare` → `execute` → `accept`/`reject`/`cancel` →
 `export` → `verify`) runs entirely against the fixture world; see
 `bond doctor --json` for capability status.
+
+### Fixture dates and the CLI clock
+
+The objects in `fixtures/f.js` are fixed conformance vectors, not rolling demo
+inputs. In particular, `F.action.execute_before` is
+`2026-09-12T12:00:30.000Z`; the CLI uses the system clock and `prepare`
+returns `DEADLINE` at or after that instant. The conformance harness instead
+uses a clock pinned to `F.t`. Do not change the system clock to bypass a real
+deadline. For a current simulation, create a new action with valid current
+`created_at`, `execute_before`, `reserve_until`, and `long_stop` values, plus
+paper and trust keys valid for the new times; sign any changed paper again.
+Changing the golden fixture objects invalidates their associated signatures and
+hashes, so keep them unchanged for conformance and offline verification.
