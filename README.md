@@ -50,6 +50,23 @@ fail-closed stubs that report their missing native capability (for example
 - `fixtures/f.js` — the normative fixture module (golden objects, views,
   packages, trust file).
 
+## CLI signing seed
+
+The CLI reads a 32-byte Ed25519 seed encoded as 64 hexadecimal characters
+from an environment variable. For `signing_key_ref: "main"` in the config,
+set `BOND_SEED_MAIN` before running `bond`:
+
+```sh
+export BOND_SEED_MAIN='<64-character hex seed>'
+bond --config bond.config.json doctor --json
+```
+
+For other references, uppercase the reference and replace every character
+outside `A`–`Z` and `0`–`9` with `_`, then prepend `BOND_SEED_`. For example,
+`signing_key_ref: "team-key"` uses `BOND_SEED_TEAM_KEY`. The seed's public key
+must appear in the configured trust file. Treat the seed as a secret; the
+conformance fixture seed is for simulation only.
+
 ## Develop
 
 ```sh
