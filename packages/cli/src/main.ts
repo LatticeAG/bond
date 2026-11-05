@@ -178,7 +178,11 @@ export async function main(argv: string[]): Promise<number> {
       return 2;
     }
     const code = e instanceof BondError ? e.code : "STORAGE";
-    if (json) process.stdout.write(J({ error: { code, retryable: code === "BUSY" || code === "STORAGE" } }) + "\n");
+    if (json) {
+      const error = { code, retryable: code === "BUSY" || code === "STORAGE",
+        ...(e instanceof BondError && code === "SCHEMA" && e.message !== code ? { message: e.message } : {}) };
+      process.stdout.write(J({ error }) + "\n");
+    }
     else process.stderr.write(`error ${code}: ${e instanceof Error ? e.message : ""}\n`);
     return codeExit(code);
   }
