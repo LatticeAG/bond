@@ -50,6 +50,23 @@ fail-closed stubs that report their missing native capability (for example
 - `fixtures/f.js` — the normative fixture module (golden objects, views,
   packages, trust file).
 
+## CLI signing seed
+
+The CLI reads a 32-byte Ed25519 seed encoded as 64 hexadecimal characters
+from an environment variable. For `signing_key_ref: "main"` in the config,
+set `BOND_SEED_MAIN` before running `bond`:
+
+```sh
+export BOND_SEED_MAIN='<64-character hex seed>'
+bond --config bond.config.json doctor --json
+```
+
+For other references, uppercase the reference and replace every character
+outside `A`–`Z` and `0`–`9` with `_`, then prepend `BOND_SEED_`. For example,
+`signing_key_ref: "team-key"` uses `BOND_SEED_TEAM_KEY`. The seed's public key
+must appear in the configured trust file. Treat the seed as a secret; the
+conformance fixture seed is for simulation only.
+
 ## Develop
 
 ```sh
@@ -61,3 +78,18 @@ python3 -m pytest python/tests -q   # Python parity suite
 The CLI lifecycle (`prepare` → `execute` → `accept`/`reject`/`cancel` →
 `export` → `verify`) runs entirely against the fixture world; see
 `bond doctor --json` for capability status.
+
+### Fixture dates and the CLI clock
+
+The objects in `fixtures/f.js` are fixed conformance vectors, not rolling demo
+inputs. In particular, `F.action.execute_before` is
+`2026-09-12T12:00:30.000Z`. To run the stock fixture indefinitely, set
+`"fixture_clock": "2026-09-12T12:00:00.000Z"` in the CLI configuration.
+This pins both the coordinator and fixture adapters to the fixture time and is
+accepted only when all adapters use fixture mode. Without this setting, the
+CLI uses the system clock and enforces the action's actual deadline. For a
+current simulation, create a new action with valid current
+`created_at`, `execute_before`, `reserve_until`, and `long_stop` values, plus
+paper and trust keys valid for the new times; sign any changed paper again.
+Changing the golden fixture objects invalidates their associated signatures and
+hashes, so keep them unchanged for conformance and offline verification.

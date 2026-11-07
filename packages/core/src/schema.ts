@@ -692,7 +692,8 @@ export function vConfig(x: unknown): T.Config {
   keys(x, ["schema", "profile", "tenant_id", "scope_id", "principal_id", "data_dir",
     "trust_file", "signing_key_ref", "clock_max_uncertainty_ms", "run_freshness_ms",
     "dependency_timeout_ms", "max_pending_actions", "max_package_bytes",
-    "insurance_mode", "scope_binding", "adapters", "hosting"]);
+    "insurance_mode", "scope_binding", "adapters", "hosting",
+    ...(Object.prototype.hasOwnProperty.call(x, "fixture_clock") ? ["fixture_clock"] : [])]);
   lit(x.schema, "bond.config/1");
   lit(x.profile, "bond.sim-procurement-draft/1");
   if (!isObj(x.scope_binding)) fail();
@@ -713,6 +714,9 @@ export function vConfig(x: unknown): T.Config {
   if (ids.length !== 5 || new Set(ids).size !== 5
     || ids.some((id, i) => id !== wantIds[i])) {
     fail("exactly five adapters sorted by id required");
+  }
+  if (x.fixture_clock !== undefined && adapters.some((a) => a.mode !== "fixture")) {
+    fail("fixture_clock requires fixture adapters");
   }
   if (!isObj(x.hosting)) fail();
   let hosting: T.Config["hosting"];
@@ -740,6 +744,7 @@ export function vConfig(x: unknown): T.Config {
     data_dir: str(x.data_dir),
     trust_file: str(x.trust_file),
     signing_key_ref: str(x.signing_key_ref),
+    ...(Object.prototype.hasOwnProperty.call(x, "fixture_clock") ? { fixture_clock: vTime(x.fixture_clock) } : {}),
     clock_max_uncertainty_ms: lit(x.clock_max_uncertainty_ms, 1000),
     run_freshness_ms: lit(x.run_freshness_ms, 250),
     dependency_timeout_ms: lit(x.dependency_timeout_ms, 5000),

@@ -50,10 +50,13 @@ export function wireClient(configPath: string): Wired {
 
   let fixtures: FixtureAdapterSet | null = null;
   let ports: PortCaller;
+  const clock = config.fixture_clock
+    ? { ...fixedClock(config.fixture_clock), uncertaintyMs: () => 0 }
+    : systemClock();
   if (missing.length === 0) {
     const signer = (m: Uint8Array) => signWithSeed(seed, m);
     fixtures = makeFixtureAdapters({
-      keyId, signer, clock: fixedClock(new Date().toISOString()),
+      keyId, signer, clock,
       runId: "run-cli", hostId: "host-cli",
       buildHash: config.adapters[0]!.build_hash,
     });
@@ -91,7 +94,7 @@ export function wireClient(configPath: string): Wired {
 
   let client!: BondClient;
   client = new BondClient({
-    config, trust, secrets, clock: systemClock(), ports,
+    config, trust, secrets, clock, ports,
     activePin: () => installedPin(client),
     capabilityCheck: () => missing,
     authContext: ctx,

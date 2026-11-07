@@ -178,7 +178,11 @@ export async function main(argv: string[]): Promise<number> {
       return 2;
     }
     const code = e instanceof BondError ? e.code : "STORAGE";
-    if (json) process.stdout.write(J({ error: { code, retryable: code === "BUSY" || code === "STORAGE" } }) + "\n");
+    if (json) {
+      const error = { code, retryable: code === "BUSY" || code === "STORAGE",
+        ...(e instanceof BondError && code === "SCHEMA" && e.message !== code ? { message: e.message } : {}) };
+      process.stdout.write(J({ error }) + "\n");
+    }
     else process.stderr.write(`error ${code}: ${e instanceof Error ? e.message : ""}\n`);
     return codeExit(code);
   }
@@ -215,7 +219,8 @@ async function run(argv: string[], json: boolean): Promise<number> {
           run_id: reqFlag(args, "run"), paper,
         });
         emit(r.ok ? r.value : r, json, outPath);
-        return mutationExit(r as Result<View>);
+        return r.ok && r.value.phase === "READY" && r.value.pending.length === 0
+          ? 0 : mutationExit(r as Result<View>);
       } finally { w.close(); }
     }
     case "execute": case "cancel": case "accept": case "reject": case "reconcile": {
