@@ -513,6 +513,7 @@ export interface Config {
   data_dir: string;
   trust_file: string;
   signing_key_ref: string;
+  fixture_clock?: Time;
   clock_max_uncertainty_ms: 1000;
   run_freshness_ms: 250;
   dependency_timeout_ms: 5000;

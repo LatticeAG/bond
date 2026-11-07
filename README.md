@@ -83,10 +83,12 @@ The CLI lifecycle (`prepare` → `execute` → `accept`/`reject`/`cancel` →
 
 The objects in `fixtures/f.js` are fixed conformance vectors, not rolling demo
 inputs. In particular, `F.action.execute_before` is
-`2026-09-12T12:00:30.000Z`; the CLI uses the system clock and `prepare`
-returns `DEADLINE` at or after that instant. The conformance harness instead
-uses a clock pinned to `F.t`. Do not change the system clock to bypass a real
-deadline. For a current simulation, create a new action with valid current
+`2026-09-12T12:00:30.000Z`. To run the stock fixture indefinitely, set
+`"fixture_clock": "2026-09-12T12:00:00.000Z"` in the CLI configuration.
+This pins both the coordinator and fixture adapters to the fixture time and is
+accepted only when all adapters use fixture mode. Without this setting, the
+CLI uses the system clock and enforces the action's actual deadline. For a
+current simulation, create a new action with valid current
 `created_at`, `execute_before`, `reserve_until`, and `long_stop` values, plus
 paper and trust keys valid for the new times; sign any changed paper again.
 Changing the golden fixture objects invalidates their associated signatures and

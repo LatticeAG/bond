@@ -219,7 +219,8 @@ async function run(argv: string[], json: boolean): Promise<number> {
           run_id: reqFlag(args, "run"), paper,
         });
         emit(r.ok ? r.value : r, json, outPath);
-        return mutationExit(r as Result<View>);
+        return r.ok && r.value.phase === "READY" && r.value.pending.length === 0
+          ? 0 : mutationExit(r as Result<View>);
       } finally { w.close(); }
     }
     case "execute": case "cancel": case "accept": case "reject": case "reconcile": {
